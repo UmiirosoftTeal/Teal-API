@@ -69,7 +69,10 @@ def userProfile(user_id: str):
 def viewAllUser():
     try:
         userData = user,find()
-        return userData
+        text = []
+        for d in data:
+            text.append(d)
+        return text
     except:
         return {"result": "None"}
 
