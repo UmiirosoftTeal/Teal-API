@@ -65,6 +65,14 @@ def userProfile(user_id: str):
         return {"result": "None"}
 
 
+@app.get("/user")
+def viewAllUser():
+    try:
+        userData = user,find()
+        return userData
+    except:
+        return {"result": "None"}
+
 @app.post("/signup")
 def signUp(email: str, password: str, userid: str):
     try:
