@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 import dataset
 import datetime as dt
+import pytz
 import hashlib as hl
 
 
@@ -60,7 +61,7 @@ def viewUserTweet(user_id: str, tweet_id: int):
 def userProfile(user_id: str):
     try:
         userData = user.find_one(userid=user_id)
-        return userData
+        return {"id": userData["id"], "userid": userData["userid"], "icon_url": userData["icon_url"], "detail": userData["detail"]}
     except:
         return {"result": "None"}
 
@@ -72,7 +73,7 @@ def viewAllUser():
         text = []
         for d in data:
             text.append(d)
-        return text
+        return {"id": text[0]["id"], "userid": text[0]["userid"], "icon_url": text[0]["icon_url"], "detail": text[0]["detail"]}
     except:
         return {"result": "None"}
       
@@ -82,6 +83,7 @@ def signUp(email: str, password: str, userid: str):
     try:
         icon_md5 = hl.md5(email.encode()).hexdigest()
         icon = "https://www.gravatar.com/avatar/" + icon_md5 + "?s=1000"
+        password = hl.sha256(password.encode()).hexdigest()
         user.insert({"email": email, "password": password,
                     "userid": userid, "icon_url": icon, "detail": ""})
         return {"result": "POST"}
@@ -93,9 +95,10 @@ def signUp(email: str, password: str, userid: str):
 def newTweet(email: str, password: str, text: str):
     try:
         userData = user.find_one(email=email)
+        password = hl.sha256(password.encode()).hexdigest()
         if userData["password"] == password:
             userid = userData["userid"]
-            nowDate = dt.datetime.now()
+            nowDate = dt.datetime.now(pytz.timezone('Asia/Tokyo'))
             icon_md5 = hl.md5(email.encode()).hexdigest()
             icon = "https://www.gravatar.com/avatar/" + icon_md5 + "?s=1000"
             tweet.insert({"userid": userid, "tweet": text,
@@ -109,9 +112,10 @@ def newTweet(email: str, password: str, text: str):
 def replyTweet(user_id: str, email: str, password: str, reply: str):
     try:
         userData = user.find_one(email=email)
+        password = hl.sha256(password.encode()).hexdigest()
         if userData["password"] == password:
             userid = userData["userid"]
-            nowDate = dt.datetime.now()
+            nowDate = dt.datetime.now(pytz.timezone('Asia/Tokyo'))
             icon_md5 = hl.md5(email.encode()).hexdigest()
             icon = "https://www.gravatar.com/avatar/" + icon_md5 + "?s=1000"
             tweet.insert({"userid": userid, "tweet": reply,
@@ -119,6 +123,7 @@ def replyTweet(user_id: str, email: str, password: str, reply: str):
             return {"result": "POST"}
     except:
         return {"result": "None"}
+
 
 @app.post("/like/{tweet_id}")
 def likeTweet(tweet_id: int):
@@ -135,6 +140,7 @@ def likeTweet(tweet_id: int):
 def changeProfile(user_id: str, email: str, password: str, detail: str):
     try:
         userData = user.find_one(email=email)
+        password = hl.sha256(password.encode()).hexdigest()
         if userData["password"] == password:
             user.update({"userid": user_id, "detail": detail}, ["userid"])
             return {"result": "POST"}
@@ -146,6 +152,7 @@ def changeProfile(user_id: str, email: str, password: str, detail: str):
 def deleteTweet(user_id: str, tweet_id: int, email: str, password: str):
     try:
         userData = user.find_one(email=email)
+        password = hl.sha256(password.encode()).hexdigest()
         if userData["password"] == password:
             tweet.delete(userid=user_id, id=tweet_id)
             return {"result": "POST"}
@@ -157,9 +164,11 @@ def deleteTweet(user_id: str, tweet_id: int, email: str, password: str):
 def deleteUser(user_id: str, email: str, password: str):
     try:
         userData = user.find_one(email=email)
+        password = hl.sha256(password.encode()).hexdigest()
         if userData["password"] == password:
             tweet.delete(userid=user_id)
             user.delete(userid=user_id)
             return {"result": "POST"}
     except:
         return {"result": "None"}
+
