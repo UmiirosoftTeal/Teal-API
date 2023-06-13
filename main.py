@@ -66,14 +66,15 @@ def userProfile(user_id: str):
         return {"result": "None"}
 
 
-@app.get("/user")
+@app.get("/users")
 def viewAllUser():
     try:
         data = user.find()
-        text = []
+        users = []
         for d in data:
-            text.append(d)
-        return {"id": text[0]["id"], "userid": text[0]["userid"], "icon_url": text[0]["icon_url"], "detail": text[0]["detail"]}
+            x = {"id": d["id"], "userid": d["userid"], "icon_url": d["icon_url"], "detail": d["detail"]}
+            users.append(x)
+        return users
     except:
         return {"result": "None"}
       
